@@ -1,0 +1,222 @@
+
+<html>
+<head>
+<style>
+button { 
+width: 50px;
+height: 50px;
+font-size: 10px;
+text-align: center;
+font-weight: bold;
+}
+</style>
+
+</head>
+<body>
+<div>----------------</div>
+<div id="field"></div>
+<div>----------------</div>
+</body>
+
+
+<script type="text/javascript" >
+
+//------------------------------------------------------------------- Init process
+
+const transpose = a => a[0].map((_, c) => a.map(r => r[c]));
+
+var B = 2;
+var N = 4;
+var emptyStr = "-";
+var score = 0;
+var F  = [];
+var L = [];
+
+function initGame(){
+	var score = 0;
+	initField();
+	chkEmpty();
+	popNum();
+	showField();
+}
+
+initGame();
+
+//------------------------------------------------------------------- when keyboard punched
+
+document.onkeydown = keyDown;
+
+function keyDown(){
+	var anyMove = false;
+	switch(event.keyCode) {
+		case 37:				// left
+			anyMove = moveLeft();
+			break;
+		case 38:				// up
+			anyMove = moveUp();
+			break;
+		case 39:				// right
+			anyMove = moveRight();
+			break;
+		case 40:				// down
+			anyMove = moveDown();
+			break;
+	}
+	if (anyMove == true){
+		showField();
+		chkEmpty();
+		if (L!== false){
+			popNum();
+			setTimeout("showField()", 300);
+		}
+		chkEmpty();
+		if (L== false && chkFusionable == false){
+			alert("GAME OVER", score);
+			initGame();
+		}
+	}
+}
+
+//------------------------------------------------------------------- sub functions
+
+
+function moveLeft(){
+	moved = false;
+	for (var i = 0 ; i<N ; i++){
+		var temp = [];
+		F[i].forEach(function(v){ if(v!== emptyStr){temp.push(v)}});
+		temp = fusion(temp);
+		var missing = N - temp.length;
+		for(j=0;j<missing;j++){ temp.push(emptyStr); }
+		if(JSON.stringify(F[i]) !== JSON.stringify(temp)){ 
+			moved = true;
+			F[i] = temp;
+		}
+	}
+	return moved;
+}
+
+function moveRight(){
+	moved = false;
+	for (var i = 0 ; i<N ; i++){
+		F[i].reverse();
+		var temp = [];
+		F[i].forEach(function(v){ if(v!== emptyStr){temp.push(v)}});
+		temp = fusion(temp);
+		var missing = N - temp.length;
+		for(j=0;j<missing;j++){ temp.push(emptyStr); }
+
+		if(JSON.stringify(F[i]) !== JSON.stringify(temp)){ 
+			moved = true;
+			F[i] = temp;
+		}
+		F[i].reverse();
+	}
+	return moved;
+}
+
+
+function moveUp(){
+	F = transpose(F);
+	moved = false;
+	for (var i = 0 ; i<N ; i++){
+		var temp = [];
+		F[i].forEach(function(v){ if(v!== emptyStr){temp.push(v)}});
+		temp = fusion(temp);
+		var missing = N - temp.length;
+		for(j=0;j<missing;j++){ temp.push(emptyStr); }
+		if(JSON.stringify(F[i]) !== JSON.stringify(temp)){ 
+			moved = true;
+			F[i] = temp;
+		}
+	}
+	F = transpose(F);
+	return moved;
+}
+
+function moveDown(){
+	F = transpose(F);
+	moved = false;
+	for (var i = 0 ; i<N ; i++){
+		F[i].reverse();
+		var temp = [];
+		F[i].forEach(function(v){ if(v!== emptyStr){temp.push(v)}});
+		temp = fusion(temp);
+		var missing = N - temp.length;
+		for(j=0;j<missing;j++){ temp.push(emptyStr); }
+		if(JSON.stringify(F[i]) !== JSON.stringify(temp)){ 
+			moved = true;
+			F[i] = temp;
+		}
+		F[i].reverse();
+	}
+	F = transpose(F);
+	return moved;
+}
+
+
+function fusion(x){
+	x.forEach(function (value, index, array) {
+		if (value !== emptyStr && value == x[index + 1]){
+			array[index] = value * 2;
+			score = score + value * 2;
+			array.splice(index+1,1);
+		}
+	});
+	return x;
+}
+
+function chkFusionable(){
+	for (var i = 0 ; i<N ; i++){
+		for (var j = 0;j<N-1;j++){
+			if(F[i][j]!== emptyStr && F[i][j] == F[i][j+1]){ return true; }
+		}
+	}	
+	for (var j = 0 ; j<N ; j++){
+		for (var i = 0;i<N-1;i++){
+			if(F[i][j]!== emptyStr && F[i][j] == F[i][j+1]){ return true; }
+		}
+	}
+	return false;
+}
+
+function popNum(){
+	var pick = L[Math.floor(Math.random() * L.length)];
+	var x = pick[0];
+	var y = pick[1];
+	var num = Math.random(1) <=0.85 ? B : B * 2
+	F[x][y] = num;
+}
+
+
+function chkEmpty(){
+	L = [];
+	for (var i = 0 ; i<N ; i++){
+		for (var j = 0;j<N;j++){
+			if(F[i][j] == emptyStr){
+				L.push([i , j]);
+			}
+		}
+	}	
+	L = L.length >0 ? L : false;
+}
+
+
+function initField(){
+	for (var i = 0;i<N;i++){ F[i] = Array.from(emptyStr.repeat(N)) }
+}
+
+function showField(){
+var ans =""
+	for (var i = 0 ; i<N ; i++){
+		for (var j = 0;j<N;j++){
+			ans = ans + "<button>" + F[i][j] +"</button>"
+		}
+		ans = ans + "<br>";
+	}
+document.getElementById("field").innerHTML = ans;
+}
+
+
+</script>
+</html>
